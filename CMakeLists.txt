@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   std_srvs
+  tf
   tf2
   tf2_geometry_msgs
   tf2_ros)
@@ -109,6 +110,7 @@ catkin_package(
     sensor_msgs
     std_msgs
     std_srvs
+    tf
     tf2
     tf2_geometry_msgs
     tf2_ros
@@ -116,6 +118,7 @@ catkin_package(
     ${EIGEN_PACKAGE}
     GeographicLib
     YAML_CPP
+    system_lib
 )
 
 ###########
@@ -149,7 +152,8 @@ add_executable(ekf_localization_node src/ekf_localization_node.cpp)
 add_executable(ukf_localization_node src/ukf_localization_node.cpp)
 add_executable(navsat_transform_node src/navsat_transform_node.cpp)
 add_executable(robot_localization_listener_node src/robot_localization_listener_node.cpp)
-
+add_executable(encoder2odom src/encoder_to_odom.cpp)
+add_executable(odom_to_path src/odom_to_path.cpp)
 # Dependencies
 add_dependencies(filter_base ${PROJECT_NAME}_gencpp)
 add_dependencies(navsat_transform ${PROJECT_NAME}_gencpp)
@@ -173,6 +177,8 @@ target_link_libraries(ukf_localization_nodelet ros_filter ${catkin_LIBRARIES})
 target_link_libraries(navsat_transform filter_utilities ros_filter_utilities ${catkin_LIBRARIES} ${EIGEN3_LIBRARIES} ${GeographicLib_LIBRARIES})
 target_link_libraries(navsat_transform_node navsat_transform ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
 target_link_libraries(navsat_transform_nodelet navsat_transform ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
+target_link_libraries(encoder2odom ${EIGEN3_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OCTOMAP_LIBRARIES})
+target_link_libraries(odom_to_path ${catkin_LIBRARIES})
 
 #############
 ## Install ##
@@ -201,6 +207,7 @@ install(TARGETS
   navsat_transform_node
   robot_localization_listener_node
   ukf_localization_node
+  encoder2odom
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark cpp header files for installation
@@ -350,5 +357,6 @@ if (CATKIN_ENABLE_TESTING)
                     test/test_navsat_transform.test
                     test/test_navsat_transform.cpp)
   target_link_libraries(test_navsat_transform ${catkin_LIBRARIES} ${rostest_LIBRARIES})
-
+  
+  
 endif()

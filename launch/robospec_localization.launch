@@ -1,0 +1,21 @@
+<launch>
+    <!-- Launch RealSense Camera -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+
+    <!-- Launch the complementary_filter from imu_complementary_filter -->
+    <include file="$(find imu_complementary_filter)/launch/complementary_filter.launch"/>
+
+    <!-- Run encoder2odom node from the robot_localization package -->
+    <node name="encoder2odom" pkg="robot_localization" type="encoder2odom" output="screen"/>
+    <node name="odom_to_path" pkg="robot_localization" type="odom_to_path" output="screen"/>
+
+    <!-- Launch the start_filter launch file from robot_localization -->
+    <!-- <include file="$(find robot_localization)/launch/start_filter.launch"/> -->
+
+
+
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_localization)/config/localization.rviz" /> -->
+
+    
+
+</launch>
