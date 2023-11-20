@@ -152,8 +152,12 @@ add_executable(ekf_localization_node src/ekf_localization_node.cpp)
 add_executable(ukf_localization_node src/ukf_localization_node.cpp)
 add_executable(navsat_transform_node src/navsat_transform_node.cpp)
 add_executable(robot_localization_listener_node src/robot_localization_listener_node.cpp)
-add_executable(encoder2odom src/encoder_to_odom.cpp)
+add_executable(encoder_to_odom src/encoder_to_odom.cpp)
+add_executable(encoder_to_odom_imu src/encoder_to_odom_imu.cpp)
 add_executable(odom_to_path src/odom_to_path.cpp)
+add_executable(imu_compensation src/imu_compensation.cpp)
+add_executable(imu_frame_id_changer src/imu_frame_id_changer.cpp)
+
 # Dependencies
 add_dependencies(filter_base ${PROJECT_NAME}_gencpp)
 add_dependencies(navsat_transform ${PROJECT_NAME}_gencpp)
@@ -177,9 +181,11 @@ target_link_libraries(ukf_localization_nodelet ros_filter ${catkin_LIBRARIES})
 target_link_libraries(navsat_transform filter_utilities ros_filter_utilities ${catkin_LIBRARIES} ${EIGEN3_LIBRARIES} ${GeographicLib_LIBRARIES})
 target_link_libraries(navsat_transform_node navsat_transform ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
 target_link_libraries(navsat_transform_nodelet navsat_transform ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
-target_link_libraries(encoder2odom ${EIGEN3_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OCTOMAP_LIBRARIES})
+target_link_libraries(encoder_to_odom ${EIGEN3_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OCTOMAP_LIBRARIES})
+target_link_libraries(encoder_to_odom_imu ${EIGEN3_LIBRARIES} ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${CERES_LIBRARIES} ${OCTOMAP_LIBRARIES})
 target_link_libraries(odom_to_path ${catkin_LIBRARIES})
-
+target_link_libraries(imu_compensation ${catkin_LIBRARIES})
+target_link_libraries(imu_frame_id_changer ${catkin_LIBRARIES})
 #############
 ## Install ##
 #############
@@ -207,7 +213,11 @@ install(TARGETS
   navsat_transform_node
   robot_localization_listener_node
   ukf_localization_node
-  encoder2odom
+  encoder_to_odom
+  encoder_to_odom_imu
+  odom_to_path
+  imu_compensation
+  imu_frame_id_changer
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark cpp header files for installation

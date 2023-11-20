@@ -1,0 +1,22 @@
+<launch>
+    <!-- Launch RealSense Camera -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+
+    <!-- Launch the complementary_filter from imu_complementary_filter -->
+    <include file="$(find imu_complementary_filter)/launch/complementary_filter_databag.launch"/>
+    <!-- <include file="$(find imu_filter_madgwick)/launch/imu_filter_madgwick.launch"/> -->
+    <node name="imu_frame_id_changer" pkg="robot_localization" type="imu_frame_id_changer" output="screen"/>
+    <!-- Run encoder2odom node from the robot_localization package -->
+    <node name="encoder_to_odom" pkg="robot_localization" type="encoder_to_odom" output="screen"/>
+    <!-- <node name="encoder_to_odom_imu" pkg="robot_localization" type="encoder_to_odom_imu" output="screen"/> -->
+    <node name="odom_to_path" pkg="robot_localization" type="odom_to_path" output="screen"/>
+
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
+    <rosparam command="load" file="$(find robot_localization)/config/ekf_localization.yaml"/>
+    </node>
+    
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_localization)/config/localization.rviz" />
+
+    
+
+</launch>

@@ -2,17 +2,20 @@
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
-#include <tf/transform_broadcaster.h>
-
+#include <fstream>
 
 class OdomToPath
 {
 public:
-    OdomToPath()
+    OdomToPath() : file("path_record.txt")
     {
         path_pub = nh.advertise<nav_msgs::Path>("/path/filtered", 10, true);
-        // odom_sub = nh.subscribe("/odometry/filtered", 10, &OdomToPath::odomCallback, this);
-        odom_sub = nh.subscribe("/encoder_odom", 10, &OdomToPath::odomCallback, this);
+        odom_sub = nh.subscribe("odometry/filtered", 10, &OdomToPath::odomCallback, this);
+    }
+
+    ~OdomToPath()
+    {
+        file.close();
     }
 
     void odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
@@ -26,13 +29,14 @@ public:
 
         path_pub.publish(path);
 
-        tf::TransformBroadcaster br;
-        tf::Transform transform;
-        transform.setOrigin(tf::Vector3(cur_pose.pose.position.x, cur_pose.pose.position.y, cur_pose.pose.position.z));
-        tf::Quaternion q;
-        tf::quaternionMsgToTF(cur_pose.pose.orientation, q);
-        transform.setRotation(q);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_link"));
+        // Write pose to file
+        file << cur_pose.pose.position.x << ", "
+             << cur_pose.pose.position.y << ", "
+             << cur_pose.pose.position.z << ", "
+             << cur_pose.pose.orientation.x << ", "
+             << cur_pose.pose.orientation.y << ", "
+             << cur_pose.pose.orientation.z << ", "
+             << cur_pose.pose.orientation.w << std::endl;
     }
 
 private:
@@ -40,6 +44,7 @@ private:
     ros::Publisher path_pub;
     ros::Subscriber odom_sub;
     nav_msgs::Path path;
+    std::ofstream file;
 };
 
 int main(int argc, char **argv)

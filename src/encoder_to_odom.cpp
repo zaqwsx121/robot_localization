@@ -7,19 +7,19 @@
 #include <iostream>
 #include <tf/transform_datatypes.h>
 // #include <tf/transform_broadcaster.h>
+#include <fstream>  // Include for file operations
 
 using namespace std;
 
 class EncoderToOdometry
 {
 public:
-    EncoderToOdometry()
+    EncoderToOdometry(): file("odom_data.txt")
     {
         // Initialize parameters
-        // wheel_radius_ = 0.035; // red smaller wheels
-        wheel_radius_ = 0.04; // blue bigger wheels
-        // wheel_radius_ = 1;
-        wheel_separation_ = 0.23;
+        wheel_radius_ = 0.03; // red smaller wheels
+        // wheel_radius_ = 0.04; // blue bigger wheels
+        wheel_separation_ = 0.2;
         prev_left_ = 0.0;
         prev_right_ = 0.0;
         x_ = 0.0;
@@ -30,8 +30,11 @@ public:
         // ROS subscribers and publishers
         encoder_sub_ = nh_.subscribe("/repair_robot/encoder", 10, &EncoderToOdometry::encoderCallback, this);
         odom_pub_ = nh_.advertise<nav_msgs::Odometry>("encoder_odom", 10);
-        // IMU data subscriber
-        imu_sub_ = nh_.subscribe("/imu/data", 10, &EncoderToOdometry::imuCallback, this);
+    }
+
+    ~EncoderToOdometry()
+    {
+        file.close();
     }
 
     void encoderCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
@@ -82,20 +85,9 @@ public:
         odom.pose.pose.position.x = x_;
         odom.pose.pose.position.y = y_;
         odom.pose.pose.position.z = 0.0;
-        // tf::Quaternion q = tf::createQuaternionFromYaw(theta_);
-        // tf::quaternionTFToMsg(q, odom.pose.pose.orientation);
-        // Add transform from base_link to camera_imu_optical_frame
-        tf::TransformBroadcaster br;
-        tf::Transform transform;
-        transform.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-        tf::Quaternion q;
-        q.setRPY(0, 0, 0);
-        transform.setRotation(q);
-        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", "base_link"));
-
-
-        // Use IMU orientation data
-        odom.pose.pose.orientation = imu_orientation_;
+        tf::Quaternion q = tf::createQuaternionFromYaw(theta_);
+        tf::quaternionTFToMsg(q, odom.pose.pose.orientation);
+    
 
         odom.twist.twist.linear.x = delta_s;
         odom.twist.twist.angular.z = delta_theta;
@@ -105,21 +97,11 @@ public:
         // Update previous encoder values
         prev_left_ = left;
         prev_right_ = right;
-    }
-    void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
-    {
-        // Update the stored IMU orientation
-        imu_orientation_ = msg->orientation;
-        // Convert quaternion to Euler angles
-        tf::Quaternion q;
-        tf::quaternionMsgToTF(imu_orientation_, q);
-        double roll, pitch, yaw;
-        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
 
-        // Use yaw as theta
-        theta_ = yaw;
+        // Write x, y, z, and theta to file
+        file << x_ << ", " << y_ << ", " << z_ << ", " << theta_ << std::endl;
     }
-
+    
 private:
     ros::NodeHandle nh_;
     ros::Subscriber encoder_sub_;
@@ -135,6 +117,7 @@ private:
     double z_;
     double theta_;
     geometry_msgs::Quaternion imu_orientation_; // Store IMU orientation
+    std::ofstream file;
 };
 
 int main(int argc, char** argv)

@@ -1,0 +1,18 @@
+<launch>
+    <param name="/use_sim_time" value="false" />
+    <!-- Launch RealSense Camera -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch"/>
+
+    <!-- Launch the complementary_filter from imu_complementary_filter -->
+    <include file="$(find imu_complementary_filter)/launch/complementary_filter_databag.launch"/>
+
+    <!-- Run encoder2odom node from the robot_localization package -->
+    <!-- <node name="encoder_to_odom" pkg="robot_localization" type="encoder_to_odom" output="screen"/> -->
+    <node name="encoder_to_odom_imu" pkg="robot_localization" type="encoder_to_odom_imu" output="screen"/>
+    <node name="odom_to_path" pkg="robot_localization" type="odom_to_path" output="screen"/>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robot_localization)/config/localization.rviz" />
+
+    
+
+</launch>
